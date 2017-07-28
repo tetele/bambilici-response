@@ -7,6 +7,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+use AppBundle\Services\Bambilici;
+
 class DefaultController extends Controller
 {
     /**
@@ -23,7 +25,7 @@ class DefaultController extends Controller
     /**
      * @Route("/google", name="google")
      */
-    public function googleAction(Request $request)
+    public function googleAction(Request $request, Bambilici $bambilici)
     {
         $req = json_decode($request->getContent());
 
@@ -32,23 +34,14 @@ class DefaultController extends Controller
         }
 
         do {
-            $n = rand(0, pow(10, floor(log10($req->result->parameters->number))+1));
+            $n = rand(0, $req->result->parameters->number*2);
             if($n == $req->result->parameters->number) {
                 continue;
             }
 
-            if($n > $req->result->parameters->number) {
-                $response = 'I pick '.$n.'. I win!';
-            } else {
-                $response = 'I pick '.$n.'. You win!';
-            }
+            $response = $bambilici->play((int)$req->result->parameters->number, (int)$n);
         } while ($n == $req->result->parameters->number);
 
-
-        $response = [
-            'speech' => $response,
-            'displayText' => $response
-        ];
 
         return new Response(json_encode($response), 200, array('Content-Type' => 'application/json'));
     }
